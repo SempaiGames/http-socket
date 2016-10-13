@@ -1,0 +1,7 @@
+#-swf bin/HttpSocket.swf
+#-js bin/HttpSocket.js
+#-php bin/php
+-cpp bin/cpp
+#-lib haxe-ga
+-cp src
+-main Main

@@ -1,0 +1,10 @@
+{
+	"name": "http-socket",
+	"url": "https://github.com/sempaigames/http-socket",
+	"license": "MIT",
+	"contributors":["fbricker"],
+	"tags": ["cross","api","http","socket"],
+	"description": "Socket based HTTP Downloader for Haxe.",
+	"version": "0.0.1",
+	"releasenote": "First commit... working!"
+}
