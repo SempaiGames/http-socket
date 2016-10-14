@@ -5,6 +5,6 @@
 	"contributors":["fbricker"],
 	"tags": ["cross","api","http","socket"],
 	"description": "Socket based HTTP Downloader for Haxe.",
-	"version": "0.0.1",
-	"releasenote": "First commit... working!"
+	"version": "1.0.0",
+	"releasenote": "Improve basic API."
 }

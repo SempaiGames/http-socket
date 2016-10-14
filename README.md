@@ -18,24 +18,34 @@ class SimpleExample {
 		trace(data);
 		
 		// The powerful way
-		var a = new Http('http://api.haxe.org/sys/net/Socket.html',onSuccess,onError);
-		a.timeout = 5;
+		var http = new Http('http://api.haxe.org/sys/net/Socket.html',onSuccess,onError);
+		http.timeout = 5;
 		// You can set UserAgent plus other headers like this
-		// a.addHeader('User-Agent',"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36");
-		// a.addHeader('Referer','http://api.haxe.org/haxe/Timer.html');
-		// a.addHeader('Accept-Language','es,en-US;q=0.8,en;q=0.6,gl;q=0.4');
-		a.request();
+		// http.addHeader('User-Agent',"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36");
+		// http.addHeader('Referer','http://api.haxe.org/haxe/Timer.html');
+		// http.addHeader('Accept-Language','es,en-US;q=0.8,en;q=0.6,gl;q=0.4');
+		http.request();
 
-		// You can also use a separate thread to queue request so your main
-		// thread doesn't get blocked at all (even when resolving DNS).
-		/*
-		ThreadedSocketRequest.onSuccess = onSuccess;
-		ThreadedSocketRequest.onError = onError;
-		ThreadedSocketRequest.request('http://api.haxe.org/sys/net/Socket.html');
-		ThreadedSocketRequest.request('http://api.haxe.org/sys/net/Socket2.html');
-		ThreadedSocketRequest.request('http://api.haxe.org/sys/net/Socket3.html');
-		ThreadedSocketRequest.request('http://api.haxe.org/sys/net/Socket4.html');
-		*/
+		// By default, requests are blocking.
+		// You can set the request as NonBlocking by calling http.blocking = false
+		// for example:
+		var http2 = new Http('http://api.haxe.org/sys/net/Socket3.html',onSuccess,onError);
+		http2.timeout = 5;
+		http2.blocking = false;
+		http2.request();
+
+		// Or you can call directly to the ThrededHttp object directly to get non-blocking request like this		
+		ThreadedHttp.requestUrl('http://api.haxe.org/sys/net/Socket.html', onSuccess, onError);
+		
+		var http3 = new Http('http://api.haxe.org/sys/net/Socket3.html',onSuccess,onError);
+		http3.timeout = 5;
+		http3.blocking = false;
+		ThreadedHttp.request(http3);
+
+		// By default, there will be a maximum of 5 threads to share between requests.
+		// To increase or decrease the max number of threads to use for requests,
+		// you can call:
+		// ThreadedHttp.maxThreads = 10; // Must be set before calling the request methods
 	}
 
 	public function onSuccess(http:Http, msg:String){

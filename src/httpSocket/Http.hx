@@ -15,8 +15,8 @@ class Http {
 	public var responseHeaders(default,null):Array<String> = null;
 	public var requestHeaders:Map<String,String> = null;
 
+	public var blocking:Bool = true;
 	public var timeout:Float = -1;
-	public var threaded:Bool = false;
 
 	///////////////////////////////////////////////////////////////////////////	
 
@@ -52,8 +52,12 @@ class Http {
 
 	///////////////////////////////////////////////////////////////////////////	
 
-	public function request():Bool{
+	public function request(fromThread:Bool=false):Bool{
 		if(url == null) return false;
+		if(!blocking && !fromThread){
+			ThreadedHttp.request(this);
+			return true;
+		}
 		var s:sys.net.Socket = null;
 		try {
 			var t1:Float = Sys.time();
