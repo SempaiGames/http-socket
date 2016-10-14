@@ -33,7 +33,7 @@ class Http {
 	private function callback(c:Http->String->Void,msg:String):Void{
 		if(c==null) return;
 		#if openfl
-			if(!threaded){
+			if(blocking){
 				c(this,msg);
 			} else{
 				haxe.Timer.delay(function(){c(this,msg);},1);				
