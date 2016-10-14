@@ -39,7 +39,6 @@ class SimpleExample {
 		
 		var http3 = new Http('http://api.haxe.org/sys/net/Socket3.html',onSuccess,onError);
 		http3.timeout = 5;
-		http3.blocking = false;
 		ThreadedHttp.request(http3);
 
 		// By default, there will be a maximum of 5 threads to share between requests.
