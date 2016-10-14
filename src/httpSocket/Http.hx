@@ -25,7 +25,6 @@ class Http {
 		this.onSuccess = onSuccess;
 		this.onError = onError;
 		requestHeaders = new Map<String,String>();
-		this.addHeader('User-Agent',USER_AGENT);
 	}
 
 	///////////////////////////////////////////////////////////////////////////	
@@ -69,11 +68,16 @@ class Http {
 			var port:Int = 80;
 			if(parsed.port!=null) port = Std.parseInt(parsed.port);
 
+			if(!requestHeaders.exists("User-Agent")) addHeader('User-Agent',USER_AGENT);
+			if(!requestHeaders.exists("Host")) addHeader('Host',parsed.host+(parsed.port!=null?(":"+parsed.port):''));
+
 			var requestString:String = "GET "+url+" HTTP/1.1\n";
 			for(key in requestHeaders.keys()){
 				requestString += key+": "+requestHeaders.get(key)+"\n";
 			}
 			requestString += "\n";
+
+			trace(requestString);
 
 			s = new sys.net.Socket();
 			if(timeout>0) s.setTimeout(timeout);
