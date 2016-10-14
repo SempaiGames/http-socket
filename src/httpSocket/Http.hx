@@ -71,28 +71,38 @@ class Http {
 			if(!requestHeaders.exists("User-Agent")) addHeader('User-Agent',USER_AGENT);
 			if(!requestHeaders.exists("Host")) addHeader('Host',parsed.host+(parsed.port!=null?(":"+parsed.port):''));
 
-			var requestString:String = "GET "+url+" HTTP/1.1\n";
+			var requestString:String = "GET "+parsed.relative+" HTTP/1.1\n";
 			for(key in requestHeaders.keys()){
 				requestString += key+": "+requestHeaders.get(key)+"\n";
 			}
 			requestString += "\n";
-
-			trace(requestString);
 
 			s = new sys.net.Socket();
 			if(timeout>0) s.setTimeout(timeout);
 			s.setBlocking(true);
 			s.connect(new sys.net.Host(parsed.host),port);
 			s.write(requestString);
-			s.shutdown(false,true);
-			s.waitForRead();
 			responseHeaders = new Array<String>();
-			var line = '';
+			var chunked:Bool = false;
+			var line:String = '';
 			do{
 				line = s.input.readLine();
+				if(line == "Transfer-Encoding: chunked") chunked = true;
 				addResponseHeader(line);
 			}while(line!='');
-			data = s.input.readAll();
+			s.shutdown(false,true);
+			if(!chunked){
+				data = s.input.readAll();
+			} else {
+				var buffer:String = '';
+				var l:Int = 0;
+				do{
+					l = Std.parseInt('0x'+s.input.readLine());
+					buffer+=s.input.read(l).toString();
+				}while(l>0);
+				data = haxe.io.Bytes.ofString(buffer);
+				buffer = null;
+			}
 			s.close();
 			var t2:Float = Sys.time();
 			if(status.charAt(0) == "2"){
@@ -121,7 +131,7 @@ class Http {
 	///////////////////////////////////////////////////////////////////////////	
 	///////////////////////////////////////////////////////////////////////////	
 
-	public static inline var USER_AGENT:String = "Haxe HTTP-SOCKET 0.0.1";
+	public static inline var USER_AGENT:String = "Haxe HTTP-SOCKET 1.0.1";
 
 	///////////////////////////////////////////////////////////////////////////	
 
