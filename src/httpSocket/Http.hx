@@ -12,7 +12,7 @@ class Http {
 	public var data:haxe.io.Bytes = null;
 	public var status:String = null;
 
-	public var responseHeaders(default,null):Array<String> = null;
+	public var responseHeaders(default,null):Map<String,String> = null;
 	public var requestHeaders:Map<String,String> = null;
 
 	public var blocking:Bool = true;
@@ -83,7 +83,7 @@ class Http {
 			s.setBlocking(true);
 			s.connect(new sys.net.Host(parsed.host),port);
 			s.write(requestString);
-			responseHeaders = new Array<String>();
+			responseHeaders = new Map<String,String>();
 			var chunked:Bool = false;
 			var line:String = '';
 			do{
@@ -107,9 +107,9 @@ class Http {
 			s.close();
 			var t2:Float = Sys.time();
 			if(status.charAt(0) == "2"){
-				callback(onSuccess,responseHeaders[0]+" - "+Math.round((t2-t1)*1000)+"ms");
+				callback(onSuccess,responseHeaders.exists('@@status@@')+" - "+Math.round((t2-t1)*1000)+"ms");
 			}else{
-				callback(onError,responseHeaders[0]+" - "+Math.round((t2-t1)*1000)+"ms");
+				callback(onError,responseHeaders.exists('@@status@@')+" - "+Math.round((t2-t1)*1000)+"ms");
 			}
 		} catch(e:Dynamic) {
 			callback(onError,'httpSocket exception: '+e);
@@ -117,18 +117,62 @@ class Http {
 			return false;
 		}
 		return true;
-		#else
-		return false;
+
+		#else // JS, PHP, etc...
+
+			var t1:Float = haxe.Timer.stamp();
+			var http:haxe.Http = new haxe.Http(url);
+			#if (python || java || macro || lua || php || cs)
+				if (timeout>0) http.cnxTimeout = timeout;
+			#end
+			#if (js)
+				http.async = !blocking;
+			#end
+			if(!requestHeaders.exists("User-Agent")) addHeader('User-Agent',USER_AGENT);
+			for(key in requestHeaders.keys()){
+				http.addHeader(key,requestHeaders.get(key));
+			}
+			http.onStatus = function(status:Int){
+				this.status = ''+status;
+			}
+			http.onData = function(data:String){
+				var t2:Float = haxe.Timer.stamp();
+				#if js
+				responseHeaders = null;
+				#else
+				responseHeaders = http.responseHeaders;
+				#end
+				if(data!=null) this.data = haxe.io.Bytes.ofString(data);
+				var status = (responseHeaders!=null && responseHeaders.exists('@@status@@'))?responseHeaders.get('@@status@@'):'@unknow status@';
+				callback(onSuccess,status+" - "+Math.round((t2-t1)*1000)+"ms");
+			}
+			http.onError = function(msg:String){
+				var t2:Float = haxe.Timer.stamp();
+				#if js
+				responseHeaders = null;
+				#else
+				responseHeaders = http.responseHeaders;
+				#end
+				data = null;
+				var status = (responseHeaders!=null && responseHeaders.exists('@@status@@'))?responseHeaders.get('@@status@@'):'@unknow status@';
+				callback(onError,status+" - "+Math.round((t2-t1)*1000)+"ms");
+			}
+			http.request();
+			return true;
 		#end
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 
 	private function addResponseHeader(h:String){
-		responseHeaders.push(h);
-		if(responseHeaders.length==1 && h.substr(0,4)=='HTTP'){
+		if(h=='' || h==null) return;
+		if(!responseHeaders.exists('@@status@@') && h.substr(0,4)=='HTTP'){
 			var aux = h.split(' ');
 			if(aux.length>=2) status = aux[1];
+			responseHeaders.set('@@status@@',h);
+		} else {
+			var pos = h.indexOf(':',0);
+			if(pos>0) responseHeaders.set(h.substr(0,pos),h.substr(pos+1));
 		}
 	}
 
@@ -140,9 +184,13 @@ class Http {
 	///////////////////////////////////////////////////////////////////////////	
 
 	public static function requestUrl(url:String):String {
-		var http = new Http(url,null,null);
-		if(!http.request()) return null;
-		return http.data.toString();
+		#if cpp
+			var http = new Http(url,null,null);
+			if(!http.request()) return null;
+			return http.data.toString();
+		#else
+			return haxe.Http.requestUrl(url);
+		#end
 	}
 
 	///////////////////////////////////////////////////////////////////////////	

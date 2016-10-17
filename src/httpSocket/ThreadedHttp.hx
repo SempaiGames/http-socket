@@ -86,19 +86,18 @@ class ThreadedHttp {
 	///////////////////////////////////////////////////////////////////////////
 
 	public static function requestUrl(url:String, onSuccess:Http->String->Void, onError:Http->String->Void){
-		#if ( cpp || neko )
-			var http = new Http(url, onSuccess, onError);
-			http.blocking = false;
-			pickThread().queue(http);
-		#end
+		var http = new Http(url, onSuccess, onError);
+		request(http);
 	}
 
 	///////////////////////////////////////////////////////////////////////////
 
 	public static function request(http:Http){
+		http.blocking = false;
 		#if ( cpp || neko )
-			http.blocking = false;
 			pickThread().queue(http);
+		#else
+			http.request(true);
 		#end
 	}
 
