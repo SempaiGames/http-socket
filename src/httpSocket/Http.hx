@@ -1,5 +1,7 @@
 package httpSocket;
 
+import sys.net.Host;
+
 class Http {
 
 	///////////////////////////////////////////////////////////////////////////	
@@ -18,6 +20,8 @@ class Http {
 	public var blocking:Bool = true;
 	public var timeout:Float = -1;
 
+	private var hostMap:Map<String, Host>;
+
 	///////////////////////////////////////////////////////////////////////////	
 
 	public function new(url:String,onSuccess:Http->String->Void = null ,onError:Http->String->Void = null){
@@ -25,6 +29,7 @@ class Http {
 		this.onSuccess = onSuccess;
 		this.onError = onError;
 		requestHeaders = new Map<String,String>();
+		hostMap = new Map<String, Host>();
 	}
 
 	///////////////////////////////////////////////////////////////////////////	
@@ -81,7 +86,7 @@ class Http {
 			s = new sys.net.Socket();
 			if(timeout>0) s.setTimeout(timeout);
 			s.setBlocking(true);
-			s.connect(new sys.net.Host(parsed.host),port);
+			s.connect(getHost(parsed.host),port);
 			s.write(requestString);
 			responseHeaders = new Map<String,String>();
 			var chunked:Bool = false;
@@ -160,6 +165,17 @@ class Http {
 			http.request();
 			return true;
 		#end
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+
+	private function getHost(hostName:String):Host{
+		if(hostMap.exists(hostName)) return hostMap.get(hostName);
+		else {
+			var h = new Host(hostName);
+			hostMap.set(hostName, h);
+			return h;
+		}
 	}
 
 	///////////////////////////////////////////////////////////////////////////
