@@ -5,6 +5,6 @@
 	"contributors":["fbricker"],
 	"tags": ["cross","api","http","socket"],
 	"description": "Socket based HTTP Downloader for Haxe.",
-	"version": "1.1.0",
-	"releasenote": "Add implementation for non CPP targets (using haxe.Http as fallback)."
+	"version": "1.1.1",
+	"releasenote": "Implement host-map cache."
 }
