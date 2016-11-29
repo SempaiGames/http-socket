@@ -41,7 +41,7 @@ class Http {
 			if(blocking){
 				c(this,msg);
 			} else{
-				haxe.Timer.delay(function(){c(this,msg);},1);				
+				haxe.Timer.delay(function(){c(this,msg);},0);				
 			}
 		#else
 			c(this,msg);
