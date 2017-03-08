@@ -67,11 +67,11 @@ class Http {
 		try {
 			var t1:Float = Sys.time();
 			var parsed:URLParser = URLParser.parse(url);
-			if(parsed.protocol != 'http'){
-				callback(onError,'http-socket does supports only HTTP protocol!');
+			if(parsed.protocol != 'http' && parsed.protocol != 'https'){
+				callback(onError,'http-socket supports only HTTP and HTTPS protocols!');
 				return false;
 			}
-			var port:Int = 80;
+			var port:Int = -1;
 			if(parsed.port!=null) port = Std.parseInt(parsed.port);
 
 			if(!requestHeaders.exists("User-Agent")) addHeader('User-Agent',USER_AGENT);
@@ -83,7 +83,13 @@ class Http {
 			}
 			requestString += "\n";
 
-			s = new sys.net.Socket();
+			if(parsed.protocol == 'http') {
+				s = new sys.net.Socket();
+				if(port == -1) port=80;
+			} else if(parsed.protocol == 'https') {
+				s = new sys.ssl.Socket();
+				if(port == -1) port=443;
+			}
 			if(timeout>0) s.setTimeout(timeout);
 			s.setBlocking(true);
 			s.connect(getHost(parsed.host),port);
@@ -200,7 +206,7 @@ class Http {
 	///////////////////////////////////////////////////////////////////////////	
 
 	public static function requestUrl(url:String):String {
-		#if cpp
+		#if (cpp || neko)
 			var http = new Http(url,null,null);
 			if(!http.request()) return null;
 			return http.data.toString();

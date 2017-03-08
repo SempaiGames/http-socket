@@ -7,7 +7,7 @@ class Main {
 	
 	public static function main() {
 		// The super simple way
-		var data = Http.requestUrl('http://www.google.com.ar/search?q=haxe');
+		var data = Http.requestUrl('https://www.google.com.ar/search?q=haxe');
 		trace(data);
 		
 		// The powerful way
